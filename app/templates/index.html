@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h2>Add User</h2>
+        <form action="{{ url_for('add_user') }}" method="post" class="mb-4">
+            <div class="mb-3">
+                <input type="text" name="name" class="form-control" placeholder="Name" required>
+            </div>
+            <div class="mb-3">
+                <input type="email" name="email" class="form-control" placeholder="Email" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add User</button>
+        </form>
+
+        <h2>Users</h2>
+        <ul id="userList" class="list-group mb-4"></ul>
+        <button onclick="loadUsers()" class="btn btn-secondary">Refresh Users</button>
+    </div>
+
+    <div class="col-md-6">
+        <h2>Cache</h2>
+        <form action="{{ url_for('set_cache') }}" method="post" class="mb-4">
+            <div class="mb-3">
+                <input type="text" name="key" class="form-control" placeholder="Key" required>
+            </div>
+            <div class="mb-3">
+                <input type="text" name="value" class="form-control" placeholder="Value" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Set Cache</button>
+        </form>
+
+        <h3>Check Cache</h3>
+        <div class="input-group mb-3">
+            <input type="text" id="cacheCheckKey" class="form-control" placeholder="Key to check">
+            <button onclick="checkCache()" class="btn btn-secondary">Check Cache</button>
+        </div>
+        <p id="cacheResult" class="mt-2"></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function loadUsers() {
+    axios.get('/users')
+        .then(function (response) {
+            let userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            response.data.forEach(function(user) {
+                userList.innerHTML += `<li class="list-group-item">${user.name} (${user.email})</li>`;
+            });
+        })
+        .catch(function (error) {
+            console.error('Error loading users:', error);
+        });
+}
+
+function checkCache() {
+    let key = document.getElementById('cacheCheckKey').value;
+    axios.get(`/get_cache?key=${key}`)
+        .then(function (response) {
+            document.getElementById('cacheResult').innerText = `Value: ${response.data.value}`;
+        })
+        .catch(function (error) {
+            console.error('Error checking cache:', error);
+        });
+}
+
+document.addEventListener('DOMContentLoaded', loadUsers);
+</script>
+{% endblock %}
