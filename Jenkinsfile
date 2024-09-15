@@ -2,17 +2,12 @@ pipeline {
     agent any
 
     environment {
-        MYSQL_HOST = 'db'
-        MYSQL_USER = 'root'
-        MYSQL_PASSWORD = 'rootpassword'
-        MYSQL_DATABASE = 'myapp'
-        REDIS_HOST = 'cache'
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // No credentials required since the repository is public
                 git url: 'https://github.com/Prakhar8003/Web-App-Automation.git', branch: 'main'
             }
         }
@@ -20,7 +15,12 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    sh 'docker-compose build'
+                    // Check if Docker is installed and accessible
+                    bat 'docker --version'
+                    bat 'docker-compose --version'
+
+                    // Build Docker images using docker-compose
+                    bat 'docker-compose -f %DOCKER_COMPOSE_FILE% build'
                 }
             }
         }
@@ -28,7 +28,8 @@ pipeline {
         stage('Run Docker Compose') {
             steps {
                 script {
-                    sh 'docker-compose up -d'
+                    // Run Docker containers in the background (detached mode)
+                    bat 'docker-compose -f %DOCKER_COMPOSE_FILE% up -d'
                 }
             }
         }
@@ -36,19 +37,17 @@ pipeline {
         stage('Test Application') {
             steps {
                 script {
-                    // Here you can add any tests or health checks you want to perform
-                    sh 'curl http://localhost:8765'
+                    // Test the running application (you can replace this with your own tests)
+                    bat 'curl http://localhost:8765'
                 }
             }
         }
+    }
 
-        stage('Clean Up') {
-            steps {
-                script {
-                    // Optionally bring down the containers after tests
-                    sh 'docker-compose down'
-                }
-            }
+    post {
+        always {
+            // Clean the workspace without stopping the running containers
+            cleanWs()
         }
     }
 }
