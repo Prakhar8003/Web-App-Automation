@@ -6,12 +6,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git url: 'https://github.com/Prakhar8003/Web-App-Automation.git', branch: 'main'
-            }
-        }
-
         stage('Build Docker Images') {
             steps {
                 script {
